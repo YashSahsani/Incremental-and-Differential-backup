@@ -16,8 +16,8 @@ mkdir -p "$backupDir" "$cbw24Dir" "$ib24Dir" "$db24Dir"
 touch "$logFile"
 # Define the time-stamp format and sleep time
 timeStampBackupFormat="%Y-%m-%d %H:%M:%S %Z"
-currentTime=$(TZ=America/New_York date +"$timeStampBackupFormat")
-completeBackUpTime=$(TZ=America/New_York date +"$timeStampBackupFormat")
+currentTime=$(date +"$timeStampBackupFormat")
+completeBackUpTime=$(date +"$timeStampBackupFormat")
 sleeptime=120
 
 # Define a function to get the next backup number
