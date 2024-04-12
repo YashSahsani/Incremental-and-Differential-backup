@@ -16,9 +16,9 @@ mkdir -p "$backupDir" "$cbw24Dir" "$ib24Dir" "$db24Dir"
 touch "$logFile"
 # Define the time-stamp format and sleep time
 timeStampBackupFormat="%Y-%m-%d %H:%M:%S %Z"
-currentTime=$(date +"$timeStampBackupFormat")
-completeBackUpTime=$(date +"$timeStampBackupFormat")
-sleeptime=120
+sleeptime=60
+lastestIncrementalBackupFileName="$ib24Dir/$(ls -t $ib24Dir | head -n1)";
+lastestDifferentialBackupFileName="$db24Dir/$(ls -t $db24Dir | head -n1)";
 
 # Define a function to get the next backup number
 function getNextBackupNumber() {
@@ -39,7 +39,7 @@ function completeBackUp() {
     # create the tar file
     local tar_file="cbw24-$backupNumber.tar"
     # find all files in the home directory that are not in the backup directory and create a tar file
-    find "$homeDir" -type f -not -path "$backupDir/*" -print0 2>/dev/null | tar czf "$cbw24Dir/$tar_file" --null -T - >/dev/null 2>&1
+    find "$homeDir" -type f -not -path "$backupDir/*" -print0 2>/dev/null | tar -cf "$cbw24Dir/$tar_file" --null -T - >/dev/null 2>&1
     # log the creation of the tar file
     echo "$(date +"%a %d %b %Y %I:%M:%S %p %Z") $tar_file was created" >> "$logFile"
 }
@@ -50,11 +50,11 @@ function incrementalBackup() {
     # create the tar file name
     local tar_file="ibw24-$backupNumber.tar"
     # find all files in the home directory that are not in the backup directory and are newly created or modified since the last backup
-    local filesForIncrementalBackup=$(find "$homeDir" -type f -not -path "$backupDir/*" -newermt "$1" 2>/dev/null)
+    local filesForIncrementalBackup=$(find "$homeDir" -type f -not -path "$backupDir/*" -newer "$lastestIncrementalBackupFileName" 2>/dev/null)
     # if the files are found, create a tar file
     if [ -n "$filesForIncrementalBackup" ]; then
         # create the tar file
-        tar -czf "$ib24Dir/$tar_file" $filesForIncrementalBackup >/dev/null 2>&1
+        tar -cf "$ib24Dir/$tar_file" $filesForIncrementalBackup >/dev/null 2>&1
         # log incremental backup creation in the log file
         echo "$(date +"%a %d %b %Y %I:%M:%S %p %Z") $tar_file was created" >> "$logFile"
     else
@@ -70,11 +70,11 @@ function differentialBackup() {
     # create the tar file name
     local tar_file="dbw24-$backupNumber.tar"
     # find all files in the home directory that are not in the backup directory and are newly created or modified since the last complete backup
-    local filesForDifferentialBackup=$(find "$homeDir" -type f -not -path "$backupDir/*" -newermt "$1" 2>/dev/null)
+    local filesForDifferentialBackup=$(find "$homeDir" -type f -not -path "$backupDir/*" -newer "$lastestDifferentialBackupFileName" 2>/dev/null)
     # if the files are found, create a tar file
     if [ -n "$filesForDifferentialBackup" ]; then
         # create the tar file name
-        tar -czf "$db24Dir/$tar_file" $filesForDifferentialBackup >/dev/null 2>&1
+        tar -cf "$db24Dir/$tar_file" $filesForDifferentialBackup >/dev/null 2>&1
         # log the creation of the tar file
         echo "$(date +"%a %d %b %Y %I:%M:%S %p %Z") $tar_file was created" >> "$logFile"
     else
@@ -87,13 +87,10 @@ while true; do
     # STEP 1: Create a complete backup
     completeBackUp
     # sleep for 2 minutes
-    currentTime=$(date +"$timeStampBackupFormat")
-    completeBackUpTime=$(date +"$timeStampBackupFormat")
     sleep "$sleeptime"
     # STEP 2: Create an incremental backup
     incrementalBackup "$currentTime"
     # sleep for 2 minutes
-    currentTime=$(date +"$timeStampBackupFormat")
     sleep "$sleeptime"
     # STEP 3: Create another incremental backup
     incrementalBackup "$currentTime"
@@ -102,7 +99,6 @@ while true; do
     # STEP 4: Create a differential backup
     differentialBackup "$completeBackUpTime"
     # sleep for 2 minutes
-    currentTime=$(date +"$timeStampBackupFormat")
     sleep "$sleeptime"
     # STEP 5: Create another incremental backup
     incrementalBackup "$currentTime"
