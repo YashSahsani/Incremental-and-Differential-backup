@@ -14,9 +14,9 @@ logFile="$backupDir/backup.log"
 mkdir -p "$backupDir" "$cbw24Dir" "$ib24Dir" "$db24Dir"
 # Create the log file if it doesn't exist
 touch "$logFile"
-# Define the time-stamp format and sleep time
-timeStampBackupFormat="%Y-%m-%d %H:%M:%S %Z"
-sleeptime=60
+# Defin sleep time
+sleeptime=120
+# Get the lastest backup file names
 lastestIncrementalBackupFileName="$ib24Dir/$(ls -t $ib24Dir | head -n1)";
 lastestDifferentialBackupFileName="$db24Dir/$(ls -t $db24Dir | head -n1)";
 
@@ -89,19 +89,19 @@ while true; do
     # sleep for 2 minutes
     sleep "$sleeptime"
     # STEP 2: Create an incremental backup
-    incrementalBackup "$currentTime"
+    incrementalBackup 
     # sleep for 2 minutes
     sleep "$sleeptime"
     # STEP 3: Create another incremental backup
-    incrementalBackup "$currentTime"
+    incrementalBackup 
     # sleep for 2 minutes
     sleep "$sleeptime"
     # STEP 4: Create a differential backup
-    differentialBackup "$completeBackUpTime"
+    differentialBackup 
     # sleep for 2 minutes
     sleep "$sleeptime"
     # STEP 5: Create another incremental backup
-    incrementalBackup "$currentTime"
+    incrementalBackup 
     # sleep for 2 minutes
     sleep "$sleeptime"
 done
