@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the user's home directory
-homeDir="/home/sahsani/Desktop"
+homeDir="/home/sahsani"
 # Define the location where you want to store the backup files
 backupDir="$homeDir/backup"
 cbw24Dir="$backupDir/cbw24"
